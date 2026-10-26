@@ -46,8 +46,11 @@ const styles = stylex.create({
   panel: {
     insetInline: space[2],
     zIndex: 60,
+    overflowX: 'hidden',
     overflowY: 'auto',
     overscrollBehavior: 'contain',
+    // Native vertical panning belongs to this scroller, not Vaul's drawer.
+    touchAction: 'pan-y',
   },
 });
 
@@ -172,6 +175,9 @@ export function MentionMobilePanel({
 
   return createPortal(
     <div
+      // This portal is a sibling of VaulDrawerBody, not inside its no-drag wrapper.
+      // Opt out explicitly so a gesture beginning over the menu cannot drag the drawer.
+      data-vaul-no-drag=""
       role="listbox"
       aria-orientation="vertical"
       {...withClassName(stylex.props(mentionSurface.surface, styles.panel))}

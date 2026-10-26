@@ -565,3 +565,61 @@ test.describe('prepared shortcut touch selection', () => {
     });
   }
 });
+
+test.describe('mobile slash command scrolling', () => {
+  test.use({ isMobile: true, hasTouch: true });
+
+  test('a touch swipe scrolls the docked list inside Vaul without dismissing the drawer', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'CDP native touch-gesture synthesis needs Chromium');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(
+      '/iframe.html?id=mentions-mentiontwolevelmenu--mobile-command-scroll&viewMode=story'
+    );
+
+    const input = page.getByRole('combobox', { name: 'composer' });
+    await input.fill('/');
+    const panel = page.getByRole('listbox');
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute('data-vaul-no-drag');
+    await expect(page.getByRole('option')).toHaveCount(36);
+
+    // Both the CSS overflow-axis rule and flex shrinking used to leave a
+    // second scroll container inside the docked mobile panel.
+    const list = page.getByRole('option').first().locator('..');
+    await expect
+      .poll(() =>
+        list.evaluate((node) => {
+          const style = getComputedStyle(node);
+          return [style.overflowX, style.overflowY, style.flexShrink];
+        })
+      )
+      .toEqual(['clip', 'visible', '0']);
+    await expect
+      .poll(() => panel.evaluate((node) => node.scrollHeight - node.clientHeight))
+      .toBeGreaterThan(100);
+    expect(
+      await panel.evaluate((node) => node.parentElement?.hasAttribute('data-vaul-drawer'))
+    ).toBe(true);
+
+    const bounds = await panel.boundingBox();
+    expect(bounds).not.toBeNull();
+    if (!bounds) return;
+
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.synthesizeScrollGesture', {
+      x: bounds.x + bounds.width / 2,
+      y: bounds.y + bounds.height * 0.75,
+      yDistance: -160,
+      gestureSourceType: 'touch',
+      speed: 400,
+    });
+
+    await expect.poll(() => panel.evaluate((node) => node.scrollTop)).toBeGreaterThan(10);
+    await expect(panel).toBeVisible();
+    await expect(input).toHaveValue('/');
+    await expect(page.locator('[data-vaul-drawer]')).toBeVisible();
+  });
+});

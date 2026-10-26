@@ -2,6 +2,8 @@ import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import * as stylex from '@stylexjs/stylex';
 import { Button } from '@lody/ui/button';
+import { Drawer, DrawerContent, DrawerTitle } from '@/ui/drawer';
+import { VaulDrawerBody } from '@/components/mobile/vaul-drawer-edge-back-zone';
 import { Mention, MentionInput } from '@/ui/mention';
 import { mentionSurface } from '@/ui/mention/mention-surface';
 import type { Mention as MentionRange } from '@/ui/mention/mention-root';
@@ -689,6 +691,40 @@ export const AgentRoleAvailability: Story = {
 
 export const AgentRoleAvailabilityNarrow: Story = {
   args: { ...AgentRoleAvailability.args, narrow: true },
+};
+
+/** A real Vaul mobile drawer with enough slash commands to need native touch scrolling. */
+export const MobileCommandScroll: Story = {
+  args: { search: '' },
+  render: () => (
+    <Drawer open direction="right">
+      <DrawerContent className="!h-dvh !w-full !max-w-none">
+        <DrawerTitle className="sr-only">Mobile command menu</DrawerTitle>
+        <VaulDrawerBody topInset="0px">
+          <FloatingHarness
+            categories={[
+              category('prompt_shortcut', 'shortcut', 'Prompt Shortcuts', 'prompt_shortcut', [], {
+                directTrigger: '/',
+              }),
+              category(
+                'command',
+                'cmd',
+                'Agent Commands',
+                'command',
+                Array.from({ length: 36 }, (_, index) =>
+                  toCommandCandidate({
+                    name: `command-${String(index + 1).padStart(2, '0')}`,
+                    description: `Mobile scrolling regression command ${index + 1}`,
+                  })
+                ),
+                { directTrigger: '/' }
+              ),
+            ]}
+          />
+        </VaulDrawerBody>
+      </DrawerContent>
+    </Drawer>
+  ),
 };
 
 /** The inline editor's caret menu at the page's foot. */

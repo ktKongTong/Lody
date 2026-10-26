@@ -159,7 +159,14 @@ const styles = stylex.create({
     overflowY: 'auto',
     overscrollBehavior: 'contain',
   },
-  listDocked: { maxHeight: 'none', overflowY: 'visible' },
+  // The mobile panel is the only scroll container. Keeping overflow-x: hidden
+  // here would compute overflow-y: visible to auto and create a nested scroller.
+  listDocked: {
+    flexShrink: 0,
+    maxHeight: 'none',
+    overflowX: 'clip',
+    overflowY: 'visible',
+  },
   level: { display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 },
   levelDeeper: {
     animationName: { default: enterDeeper, [REDUCED_MOTION]: 'none' },

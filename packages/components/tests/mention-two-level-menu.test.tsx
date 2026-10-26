@@ -976,4 +976,29 @@ describe('mobile mention placement', () => {
     expect(panel?.style.bottom).toBe('696px');
     expect(panel?.style.maxHeight).toBe('16px');
   });
+  it('keeps a docked panel inside Vaul and excludes its drag gestures', async () => {
+    function DrawerHarness() {
+      const inputRef = React.useRef<HTMLTextAreaElement>(null);
+      return (
+        <div data-vaul-drawer="">
+          <div data-vaul-no-drag="">
+            <div data-mention-frame="">
+              <textarea ref={inputRef} />
+              <MentionMobilePanel open anchorRef={inputRef}>
+                <div>Item</div>
+              </MentionMobilePanel>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    await act(async () => root?.render(<DrawerHarness />));
+    const drawer = container?.querySelector<HTMLElement>('[data-vaul-drawer]');
+    const panel = drawer?.querySelector<HTMLElement>('[role="listbox"]');
+    expect(panel).not.toBeNull();
+    expect(panel?.parentElement).toBe(drawer);
+    expect(panel?.hasAttribute('data-vaul-no-drag')).toBe(true);
+  });
+
 });
